@@ -1,6 +1,13 @@
 # WorkOS Object Space Explorer
 
+[![Live Demo](https://img.shields.io/badge/demo-online-7046B2?style=flat&logo=vercel)](https://3-d-work-os-explorer.vercel.app/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?style=flat&logo=typescript)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-19-61DAFB?style=flat&logo=react)](https://react.dev/)
+[![Three.js](https://img.shields.io/badge/Three.js-r174-black?style=flat&logo=threedotjs)](https://threejs.org/)
+
 An interactive 3D business-object graph and navigation experience built for WorkOS. It enables operators to visualize, explore, and traverse business record relationships—such as customers, invoices, projects, tasks, contacts, and contracts—using physical 3D spheres, relationship connections, breadcrumbs, search, and a synchronized List view fallback. Framer Motion provides restrained transitions for the List view and temporary panels, with reduced-motion support.
+
+**Live Deployment:** [https://3-d-work-os-explorer.vercel.app/](https://3-d-work-os-explorer.vercel.app/)
 
 ---
 
@@ -19,8 +26,8 @@ pnpm dev
 
 ### Clone and run on another device
 ```bash
-git clone https://github.com/Aayushi31032006/3D-WorkOS.git
-cd 3D-WorkOS
+git clone https://github.com/Aayushi31032006/3D-WorkOS-Explorer.git
+cd 3D-WorkOS-Explorer
 pnpm install --frozen-lockfile
 pnpm dev --host 0.0.0.0
 ```
@@ -46,7 +53,7 @@ pnpm build
 The codebase follows the strict separation specified in the brief:
 
 ```
-F:\3DWorkOS\
+3D-WorkOS-Explorer/
 ├── src/
 │   ├── types/                  # Shared TypeScript interfaces & models
 │   │   └── index.ts            # BusinessObject, DataProvider, ReturnContext, etc.
@@ -89,11 +96,78 @@ F:\3DWorkOS\
 │       └── explorer.test.tsx   # 7 acceptance test suites verifying all brief specs
 ```
 
+### System Architecture
+
+```mermaid
+flowchart TD
+    subgraph Host["Host Application (WorkOS)"]
+        App["App.tsx\n• ReturnContext state manager\n• Selected record routing"]
+        Header["WorkOSHeader.tsx\n• Company switcher (Globex / Initech)\n• Edge test controls (1K, Empty, Error, Restricted)"]
+        PMS["PMSPlaceholder.tsx\n• External WorkOS screen handoff\n• 'Return to Object Space' action"]
+    end
+
+    subgraph Core["Explorer Controller"]
+        Explorer["ObjectSpaceExplorer.tsx\n• Active record coordinator\n• View mode switch & camera overlay"]
+        Breadcrumb["Breadcrumb.tsx & SearchBar.tsx"]
+    end
+
+    subgraph Presentation["Dual Presentation Layer"]
+        Scene["3D Scene (Three.js / R3F)\n• Dais plinth & floating spheres\n• Curved bezier tube connections\n• OrbitControls & soft shadows"]
+        ListView["List View Fallback\n• Accessible tabular view\n• Zero-WebGL requirement\n• Full keyboard navigation"]
+    end
+
+    subgraph Drawers["Slide-in Drawers"]
+        Details["DetailsPanel.tsx\n• Field metadata & activity feed\n• 'Open project in WorkOS' trigger"]
+        Collection["CollectionPanel.tsx\n• Paginated records (20/page)\n• Search & status filtering"]
+    end
+
+    subgraph Data["Data Layer"]
+        DataProvider["DataProvider Interface"]
+        MockData["MockDataProvider\n• 1,000-record generator\n• Simulated latency & edge errors"]
+    end
+
+    App --> Header
+    App --> Explorer
+    App <-->|onOpenExecution / ReturnContext| PMS
+    Explorer <--> DataProvider
+    DataProvider --> MockData
+    Explorer --> Breadcrumb
+    Explorer --> Scene
+    Explorer --> ListView
+    Explorer --> Details
+    Explorer --> Collection
+```
+
 ---
 
 ## Verifying Every Requirement
 
 ### 1. Canonical Customer Journey
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as Operator
+    participant Scene as 3D Canvas
+    participant Explorer as ObjectSpaceExplorer
+    participant Panel as Drawers
+    participant PMS as Demo Host (PMS)
+
+    User->>Scene: Views initial Dais (Globex Ltd Customer)
+    User->>Scene: Clicks peripheral sphere: Invoices (7)
+    Scene->>Panel: Opens CollectionPanel ("Invoices for Globex Ltd")
+    User->>Panel: Selects INV-0042 (₹42,500 Due)
+    Panel->>Explorer: Updates active record to INV-0042
+    Explorer->>Scene: Animates INV-0042 to Dais & re-renders connected records
+    User->>Scene: Clicks central INV-0042 sphere
+    Scene->>Panel: Opens DetailsPanel (Fields, Project Alpha link, Activity log)
+    User->>Panel: Clicks "Open project in WorkOS"
+    Panel->>PMS: Invokes onOpenExecution(proj_alpha, ReturnContext)
+    Note over PMS: Switches to PMS screen; captures exact camera & breadcrumb context
+    User->>PMS: Clicks "Return to Object Space"
+    PMS->>Explorer: Restores exploration state, view mode, and camera perspective
+```
+
 1. Open the app $\rightarrow$ **Globex Ltd** (Customer) is centered on the central plinth.
 2. Observe surrounding spheres: **Invoices (7)**, **Projects (2)**, **Contacts (2)**, **Contracts (3)** and the connected task/product groups derived from the sample graph.
 3. Click the **Invoices (7)** sphere $\rightarrow$ Opens drawer titled *"Invoices for Globex Ltd"*.
