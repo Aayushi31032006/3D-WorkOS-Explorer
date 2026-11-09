@@ -100,42 +100,52 @@ The codebase follows the strict separation specified in the brief:
 
 ```mermaid
 flowchart TD
-    subgraph Host["Host Application (WorkOS)"]
-        App["App.tsx\n• ReturnContext state manager\n• Selected record routing"]
-        Header["WorkOSHeader.tsx\n• Company switcher (Globex / Initech)\n• Edge test controls (1K, Empty, Error, Restricted)"]
-        PMS["PMSPlaceholder.tsx\n• External WorkOS screen handoff\n• 'Return to Object Space' action"]
+    %% WorkOS Refined Palette
+    classDef host fill:#FAF8FF,stroke:#7046B2,stroke-width:1.5px,color:#30264C;
+    classDef core fill:#7046B2,stroke:#4E2C8A,stroke-width:2px,color:#FFFFFF,font-weight:600;
+    classDef view fill:#EDE4F9,stroke:#9B70DC,stroke-width:1.5px,color:#30264C;
+    classDef panel fill:#F6EEFD,stroke:#B897E3,stroke-width:1.5px,color:#30264C;
+    classDef data fill:#EEF6FB,stroke:#3B82F6,stroke-width:1.5px,color:#1E3A8A;
+    classDef pms fill:#FFF8EE,stroke:#F59E0B,stroke-width:1.5px,color:#78350F;
+
+    subgraph HostApp["Demo Host Container"]
+        Header["WorkOS Navigation & Edge Controls"]:::host
+        App["App Controller (ReturnContext State)"]:::host
+        PMS["External PMS Placeholder"]:::pms
     end
 
-    subgraph Core["Explorer Controller"]
-        Explorer["ObjectSpaceExplorer.tsx\n• Active record coordinator\n• View mode switch & camera overlay"]
-        Breadcrumb["Breadcrumb.tsx & SearchBar.tsx"]
+    subgraph ExplorerCore["Core Explorer Engine"]
+        Explorer["ObjectSpaceExplorer Component"]:::core
+        Nav["Breadcrumbs & Live Search"]:::view
     end
 
-    subgraph Presentation["Dual Presentation Layer"]
-        Scene["3D Scene (Three.js / R3F)\n• Dais plinth & floating spheres\n• Curved bezier tube connections\n• OrbitControls & soft shadows"]
-        ListView["List View Fallback\n• Accessible tabular view\n• Zero-WebGL requirement\n• Full keyboard navigation"]
+    subgraph DualViews["Presentation Layer"]
+        Scene3D["3D Spatial Canvas (Three.js / R3F)
+• Dais, Physical Spheres & Bezier Splines"]:::view
+        ListView["Accessible List View Fallback
+• Keyboard Accessible & WebGL Agnostic"]:::view
     end
 
-    subgraph Drawers["Slide-in Drawers"]
-        Details["DetailsPanel.tsx\n• Field metadata & activity feed\n• 'Open project in WorkOS' trigger"]
-        Collection["CollectionPanel.tsx\n• Paginated records (20/page)\n• Search & status filtering"]
+    subgraph Drawers["Slide-Over Panels"]
+        Details["Details Drawer (Metadata & Activity)"]:::panel
+        Collection["Collection Drawer (Paging & Filters)"]:::panel
     end
 
-    subgraph Data["Data Layer"]
-        DataProvider["DataProvider Interface"]
-        MockData["MockDataProvider\n• 1,000-record generator\n• Simulated latency & edge errors"]
+    subgraph DataLayer["Data Abstraction Layer"]
+        DataProvider["DataProvider Interface"]:::data
+        MockData["MockDataProvider (1K Records & Latency)"]:::data
     end
 
-    App --> Header
+    Header --> App
     App --> Explorer
     App <-->|onOpenExecution / ReturnContext| PMS
-    Explorer <--> DataProvider
-    DataProvider --> MockData
-    Explorer --> Breadcrumb
-    Explorer --> Scene
+    Explorer --> Nav
+    Explorer --> Scene3D
     Explorer --> ListView
     Explorer --> Details
     Explorer --> Collection
+    Explorer <-->|Queries & Relationships| DataProvider
+    DataProvider --> MockData
 ```
 
 ---
@@ -147,25 +157,34 @@ flowchart TD
 ```mermaid
 sequenceDiagram
     autonumber
+
+    box rgb(250, 248, 255) Operator & Canvas
     actor User as Operator
     participant Scene as 3D Canvas
-    participant Explorer as ObjectSpaceExplorer
-    participant Panel as Drawers
-    participant PMS as Demo Host (PMS)
+    end
 
-    User->>Scene: Views initial Dais with Globex Ltd Customer
-    User->>Scene: Clicks peripheral sphere - Invoices (7)
-    Scene->>Panel: Opens CollectionPanel for Globex Ltd
-    User->>Panel: Selects INV-0042 (Due status)
-    Panel->>Explorer: Updates active record to INV-0042
-    Explorer->>Scene: Animates INV-0042 to Dais and updates graph
-    User->>Scene: Clicks central INV-0042 sphere
-    Scene->>Panel: Opens DetailsPanel with linked Project Alpha
-    User->>Panel: Clicks Open project in WorkOS
-    Panel->>PMS: Invokes onOpenExecution with ReturnContext
-    Note over PMS: Displays PMS screen while preserving camera and breadcrumb context
-    User->>PMS: Clicks Return to Object Space
-    PMS->>Explorer: Restores exploration state and camera perspective
+    box rgb(246, 238, 253) Explorer Component
+    participant Explorer as ObjectSpaceExplorer
+    participant Panel as Slide Drawers
+    end
+
+    box rgb(255, 248, 238) External Host
+    participant PMS as WorkOS PMS Screen
+    end
+
+    User->>Scene: Focus on initial Dais (Globex Ltd Customer)
+    User->>Scene: Click peripheral sphere - Invoices (7)
+    Scene->>Panel: Open CollectionPanel for Globex Ltd
+    User->>Panel: Select invoice INV-0042 (Due status)
+    Panel->>Explorer: Update active record to INV-0042
+    Explorer->>Scene: Transition INV-0042 to center & re-cluster graph
+    User->>Scene: Click central INV-0042 sphere
+    Scene->>Panel: Open DetailsPanel with linked Project Alpha
+    User->>Panel: Click Open project in WorkOS
+    Panel->>PMS: Invoke onOpenExecution(proj_alpha, ReturnContext)
+    Note over PMS: Display PMS screen while preserving camera angle and breadcrumbs
+    User->>PMS: Click Return to Object Space
+    PMS->>Explorer: Restore exploration perspective and view state
 ```
 
 1. Open the app $\rightarrow$ **Globex Ltd** (Customer) is centered on the central plinth.
