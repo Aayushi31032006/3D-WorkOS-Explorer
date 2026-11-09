@@ -100,51 +100,34 @@ The codebase follows the strict separation specified in the brief:
 
 ```mermaid
 flowchart TD
-    %% WorkOS Refined Palette
-    classDef host fill:#FAF8FF,stroke:#7046B2,stroke-width:1.5px,color:#30264C;
-    classDef core fill:#7046B2,stroke:#4E2C8A,stroke-width:2px,color:#FFFFFF,font-weight:600;
-    classDef view fill:#EDE4F9,stroke:#9B70DC,stroke-width:1.5px,color:#30264C;
-    classDef panel fill:#F6EEFD,stroke:#B897E3,stroke-width:1.5px,color:#30264C;
-    classDef data fill:#EEF6FB,stroke:#3B82F6,stroke-width:1.5px,color:#1E3A8A;
-    classDef pms fill:#FFF8EE,stroke:#F59E0B,stroke-width:1.5px,color:#78350F;
+    classDef main fill:#7046B2,stroke:#5A3793,stroke-width:2px,color:#FFFFFF,font-weight:600;
+    classDef sub fill:#8B5CF620,stroke:#8B5CF6,stroke-width:1.5px,color:inherit;
+    classDef data fill:#0EA5E920,stroke:#0EA5E9,stroke-width:1.5px,color:inherit;
+    classDef ext fill:#F59E0B20,stroke:#F59E0B,stroke-width:1.5px,color:inherit;
 
-    subgraph HostApp["Demo Host Container"]
-        Header["WorkOS Navigation & Edge Controls"]:::host
-        App["App Controller (ReturnContext State)"]:::host
-        PMS["External PMS Placeholder"]:::pms
+    subgraph Host["WorkOS Host Application"]
+        App["App Controller (ReturnContext State)"]:::sub
+        Header["WorkOSHeader (Company & Edge Controls)"]:::sub
+        PMS["External PMS Placeholder"]:::ext
     end
 
-    subgraph ExplorerCore["Core Explorer Engine"]
-        Explorer["ObjectSpaceExplorer Component"]:::core
-        Nav["Breadcrumbs & Live Search"]:::view
-    end
-
-    subgraph DualViews["Presentation Layer"]
-        Scene3D["3D Spatial Canvas (Three.js / R3F)
-• Dais, Physical Spheres & Bezier Splines"]:::view
-        ListView["Accessible List View Fallback
-• Keyboard Accessible & WebGL Agnostic"]:::view
-    end
-
-    subgraph Drawers["Slide-Over Panels"]
-        Details["Details Drawer (Metadata & Activity)"]:::panel
-        Collection["Collection Drawer (Paging & Filters)"]:::panel
+    subgraph Core["Explorer Core Engine"]
+        Explorer["ObjectSpaceExplorer Component"]:::main
+        Views["Dual Views: 3D Canvas / Synchronized List"]:::sub
+        Panels["Slide-in Drawers: Details & Collection"]:::sub
     end
 
     subgraph DataLayer["Data Abstraction Layer"]
         DataProvider["DataProvider Interface"]:::data
-        MockData["MockDataProvider (1K Records & Latency)"]:::data
+        MockData["MockDataProvider (1K Records & Graph)"]:::data
     end
 
     Header --> App
     App --> Explorer
     App <-->|onOpenExecution / ReturnContext| PMS
-    Explorer --> Nav
-    Explorer --> Scene3D
-    Explorer --> ListView
-    Explorer --> Details
-    Explorer --> Collection
-    Explorer <-->|Queries & Relationships| DataProvider
+    Explorer --> Views
+    Explorer --> Panels
+    Explorer <--> DataProvider
     DataProvider --> MockData
 ```
 
@@ -153,39 +136,6 @@ flowchart TD
 ## Verifying Every Requirement
 
 ### 1. Canonical Customer Journey
-
-```mermaid
-sequenceDiagram
-    autonumber
-
-    box rgb(250, 248, 255) Operator & Canvas
-    actor User as Operator
-    participant Scene as 3D Canvas
-    end
-
-    box rgb(246, 238, 253) Explorer Component
-    participant Explorer as ObjectSpaceExplorer
-    participant Panel as Slide Drawers
-    end
-
-    box rgb(255, 248, 238) External Host
-    participant PMS as WorkOS PMS Screen
-    end
-
-    User->>Scene: Focus on initial Dais (Globex Ltd Customer)
-    User->>Scene: Click peripheral sphere - Invoices (7)
-    Scene->>Panel: Open CollectionPanel for Globex Ltd
-    User->>Panel: Select invoice INV-0042 (Due status)
-    Panel->>Explorer: Update active record to INV-0042
-    Explorer->>Scene: Transition INV-0042 to center & re-cluster graph
-    User->>Scene: Click central INV-0042 sphere
-    Scene->>Panel: Open DetailsPanel with linked Project Alpha
-    User->>Panel: Click Open project in WorkOS
-    Panel->>PMS: Invoke onOpenExecution(proj_alpha, ReturnContext)
-    Note over PMS: Display PMS screen while preserving camera angle and breadcrumbs
-    User->>PMS: Click Return to Object Space
-    PMS->>Explorer: Restore exploration perspective and view state
-```
 
 1. Open the app $\rightarrow$ **Globex Ltd** (Customer) is centered on the central plinth.
 2. Observe surrounding spheres: **Invoices (7)**, **Projects (2)**, **Contacts (2)**, **Contracts (3)** and the connected task/product groups derived from the sample graph.
