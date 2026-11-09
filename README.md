@@ -153,19 +153,19 @@ sequenceDiagram
     participant Panel as Drawers
     participant PMS as Demo Host (PMS)
 
-    User->>Scene: Views initial Dais (Globex Ltd Customer)
-    User->>Scene: Clicks peripheral sphere: Invoices (7)
-    Scene->>Panel: Opens CollectionPanel ("Invoices for Globex Ltd")
-    User->>Panel: Selects INV-0042 (₹42,500 Due)
+    User->>Scene: Views initial Dais with Globex Ltd Customer
+    User->>Scene: Clicks peripheral sphere - Invoices (7)
+    Scene->>Panel: Opens CollectionPanel for Globex Ltd
+    User->>Panel: Selects INV-0042 (Due status)
     Panel->>Explorer: Updates active record to INV-0042
-    Explorer->>Scene: Animates INV-0042 to Dais & re-renders connected records
+    Explorer->>Scene: Animates INV-0042 to Dais and updates graph
     User->>Scene: Clicks central INV-0042 sphere
-    Scene->>Panel: Opens DetailsPanel (Fields, Project Alpha link, Activity log)
-    User->>Panel: Clicks "Open project in WorkOS"
-    Panel->>PMS: Invokes onOpenExecution(proj_alpha, ReturnContext)
-    Note over PMS: Switches to PMS screen; captures exact camera & breadcrumb context
-    User->>PMS: Clicks "Return to Object Space"
-    PMS->>Explorer: Restores exploration state, view mode, and camera perspective
+    Scene->>Panel: Opens DetailsPanel with linked Project Alpha
+    User->>Panel: Clicks Open project in WorkOS
+    Panel->>PMS: Invokes onOpenExecution with ReturnContext
+    Note over PMS: Displays PMS screen while preserving camera and breadcrumb context
+    User->>PMS: Clicks Return to Object Space
+    PMS->>Explorer: Restores exploration state and camera perspective
 ```
 
 1. Open the app $\rightarrow$ **Globex Ltd** (Customer) is centered on the central plinth.
